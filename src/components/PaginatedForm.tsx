@@ -16,64 +16,52 @@ interface PaginatedFormProps {
 }
 
 export const PaginatedForm = ({ steps, onComplete, assessmentInfo }: PaginatedFormProps) => {
-  
-  if (!steps || steps.length === 0) return <div className="text-center p-12">No steps available.</div>
-
   const [currentStep, setCurrentStep] = useState(0)
   const [stepData, setStepData] = useState<Record<number, any>>({})
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set())
 
-  // Track accumulated assessment data across all steps
+  // 🔥 NEW: Track accumulated assessment data across all steps
   const [accumulatedAssessments, setAccumulatedAssessments] = useState<any>({})
 
   const progress = ((currentStep + 1) / steps.length) * 100
 
   const handleStepComplete = (data: any) => {
-    console.log('🔥 PaginatedForm: Received data from step', currentStep, ':', data)
+    console.log('📥 PaginatedForm: Received data from step', currentStep, ':', data)
     
     // Store the step data
-    const updatedStepData = {
-      ...stepData,
+    setStepData(prev => ({
+      ...prev,
       [currentStep]: data
+    }))
+
+    // 🔥 NEW: Accumulate assessment data across steps
+    if (data.assessments) {
+      setAccumulatedAssessments(prev => {
+        const updated = { ...prev, ...data.assessments }
+        console.log('📊 PaginatedForm: Updated accumulated assessments:', updated)
+        return updated
+      })
     }
-    setStepData(updatedStepData)
-
-    // CRITICAL: Calculate the final accumulated assessments INCLUDING this step's data
-    const finalAccumulatedAssessments = data.assessments 
-      ? { ...accumulatedAssessments, ...data.assessments }
-      : accumulatedAssessments
-
-    // Update state for next step (if any)
-    setAccumulatedAssessments(finalAccumulatedAssessments)
-    console.log('📊 PaginatedForm: Final accumulated assessments (including current step):', finalAccumulatedAssessments)
     
     setCompletedSteps(prev => new Set([...prev, currentStep]))
 
     if (currentStep < steps.length - 1) {
-      // Move to next step
       setCurrentStep(currentStep + 1)
     } else {
-      // Final step completed - prepare final data
-      console.log('🏁 Final step completed. Preparing final data...')
-      console.log('🔍 All step data:', updatedStepData)
+      // All steps completed, combine all data
+      const allData = Object.values({ ...stepData, [currentStep]: data }).reduce((acc, curr) => ({
+        ...acc,
+        ...curr
+      }), {})
       
-      // Merge all non-assessment data from all steps
-      const allStepData = Object.values(updatedStepData).reduce((acc, curr) => {
-        const { assessments, ...otherData } = curr as any
-        return { ...acc, ...otherData }
-      }, {})
-      
-      // CRITICAL: Use the finalAccumulatedAssessments that includes the current step
+      // 🔥 FIXED: Ensure final data includes all accumulated assessments
       const finalData = {
-        ...allStepData,
-        assessments: finalAccumulatedAssessments, // ← Use the updated version, not the stale state
-        // Include metadata if present in the final step
-        ...(data.metadata && { metadata: data.metadata })
+        ...allData,
+        assessments: accumulatedAssessments
       }
       
       console.log('✅ PaginatedForm: Final complete data:', finalData)
       console.log('✅ PaginatedForm: Final assessment domains:', Object.keys(finalData.assessments || {}))
-      console.log('✅ PaginatedForm: Assessment domains count:', Object.keys(finalData.assessments || {}).length)
       
       onComplete(finalData)
     }
@@ -142,7 +130,7 @@ export const PaginatedForm = ({ steps, onComplete, assessmentInfo }: PaginatedFo
           {React.cloneElement(steps[currentStep].component as React.ReactElement, {
             onSubmit: handleStepComplete,
             initialData: {
-              // Pass accumulated assessments to each step
+              // 🔥 FIXED: Pass accumulated assessments to each step
               assessments: accumulatedAssessments,
               // Also include current step data for form restoration
               ...stepData[currentStep]
