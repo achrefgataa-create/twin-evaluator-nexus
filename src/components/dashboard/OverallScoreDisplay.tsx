@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Gauge, TrendingUp, Clock, CheckCircle, Brain, Shield, Sparkles, Trophy, Star } from 'lucide-react'
+import { Gauge, TrendingUp, Clock, CheckCircle, Brain, Shield, Sparkles, Trophy, Star, Activity } from 'lucide-react'
 
 interface OverallScoreDisplayProps {
   overallScore?: number | null
@@ -142,63 +142,66 @@ export const OverallScoreDisplay: React.FC<OverallScoreDisplayProps> = ({
   const RatingIcon = scoreRating.icon
 
   return (
-    <Card className="h-fit">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Gauge className="w-5 h-5 text-primary" />
+    <Card className="border-0 shadow-xl bg-gradient-to-br from-card via-card/90 to-card/80 backdrop-blur-sm">
+      <CardHeader className="pb-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
+        <CardTitle className="flex items-center gap-2 text-xl text-foreground">
+          <Gauge className="w-6 h-6 text-primary" />
           Overall Assessment Score
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Circular Progress */}
-        <div className="flex justify-center">
+        {/* Circular Progress with enhanced styling */}
+        <div className="flex justify-center relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 rounded-full blur-xl"></div>
           <CircularProgress 
             value={overallScore} 
-            size={140} 
-            strokeWidth={12}
+            size={160} 
+            strokeWidth={14}
+            className="relative z-10"
           />
         </div>
 
-        {/* Score Rating */}
+        {/* Score Rating with enhanced styling */}
         {hasData && (
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
-              <RatingIcon className={`w-5 h-5 ${scoreRating.color}`} />
-              <span className={`font-semibold ${scoreRating.color}`}>
+          <div className="text-center space-y-3 p-4 rounded-xl bg-gradient-to-br from-muted/30 to-muted/10">
+            <div className="flex items-center justify-center gap-3">
+              <RatingIcon className={`w-6 h-6 ${scoreRating.color}`} />
+              <span className={`text-lg font-bold ${scoreRating.color}`}>
                 {scoreRating.text}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Assessment Quality Rating
             </p>
           </div>
         )}
 
-        {/* Completion Progress */}
-        <div className="space-y-2">
+        {/* Completion Progress with modern styling */}
+        <div className="space-y-4 p-4 rounded-xl bg-gradient-to-r from-muted/20 to-muted/10 border border-border/50">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Activity className="w-4 h-4 text-primary" />
               Progress
             </span>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
               {completedDomains}/{totalDomains} domains
             </Badge>
           </div>
           <Progress 
             value={completionPercentage} 
-            className="h-2"
+            className="h-3 bg-muted/50"
           />
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-xs text-muted-foreground text-center font-medium">
             {completionPercentage.toFixed(0)}% Complete
           </p>
         </div>
 
-        {/* Module Scores */}
+        {/* Module Scores with enhanced design */}
         {Object.keys(moduleScores).length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Module Scores
+          <div className="space-y-4">
+            <h4 className="text-base font-bold text-foreground flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Module Performance
             </h4>
             <div className="space-y-3">
               {Object.entries(moduleScores).map(([moduleKey, module]) => {
@@ -206,20 +209,24 @@ export const OverallScoreDisplay: React.FC<OverallScoreDisplayProps> = ({
                 const moduleRating = getScoreRating(module.score)
                 
                 return (
-                  <div key={moduleKey} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-6 h-6 ${module.color}`} />
-                      <span className="text-sm font-medium text-muted-foreground">
-                        {module.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${moduleRating.color}`}>
-                        {module.score.toFixed(1)}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {moduleRating.text}
-                      </Badge>
+                  <div key={moduleKey} className="group p-4 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 border border-border/50 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-background/50">
+                          <Icon className={`w-5 h-5 ${module.color}`} />
+                        </div>
+                        <span className="font-semibold text-foreground">
+                          {module.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-lg font-bold ${moduleRating.color}`}>
+                          {module.score.toFixed(1)}
+                        </span>
+                        <Badge variant="outline" className="text-xs bg-background/50">
+                          {moduleRating.text}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 )
@@ -228,18 +235,17 @@ export const OverallScoreDisplay: React.FC<OverallScoreDisplayProps> = ({
           </div>
         )}
 
-        
-        {/* Status Indicator */}
-        <div className="flex items-center justify-center gap-2 pt-2">
+        {/* Status Indicator with enhanced styling */}
+        <div className="flex items-center justify-center gap-3 pt-4 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
           {completionPercentage === 100 ? (
             <>
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium text-green-600">Assessment Complete</span>
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <span className="text-base font-bold text-green-600">Assessment Complete</span>
             </>
           ) : (
             <>
-              <Clock className="w-4 h-4 text-blue-600 animate-pulse" />
-              <span className="text-sm font-medium text-blue-600">Assessment in Progress</span>
+              <Clock className="w-5 h-5 text-primary animate-pulse" />
+              <span className="text-base font-bold text-primary">Assessment in Progress</span>
             </>
           )}
         </div>
